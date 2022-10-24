@@ -98,6 +98,7 @@ with con:
 
 import sqlite3
 
+name = "William"
 con = sqlite3.connect("pets.db")
 
 with con:
