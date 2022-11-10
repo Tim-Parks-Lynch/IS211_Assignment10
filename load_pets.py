@@ -17,25 +17,27 @@ pets = (
     (6, "Spot", "Bloodhound", 2, 1),
 )
 
-person_pet = ((1, 1), (1, 2), (2, 3), (2, 4), (3, 5), (4, 6))
+persons_pets = ((1, 1), (1, 2), (2, 3), (2, 4), (3, 5), (4, 6))
 
 con = None
 
 try:
 
     con = sqlite3.connect("pets.db")
+    cur = con.cursor()
 
     with con:
-        cur = con.cursor()
 
         cur.execute("DROP TABLE IF EXISTS person;")
         cur.execute("DROP TABLE IF EXISTS pet;")
         cur.execute("DROP TABLE IF EXISTS person_pet;")
         cur.execute(
-            "CREATE TABLE person (id INTEGER PRIMARY KEY, first_name TEXT, last_name TEXT, age INTEGER)"
+            "CREATE TABLE person (id INTEGER PRIMARY KEY, first_name TEXT,\
+                last_name TEXT, age INTEGER)"
         )
         cur.execute(
-            "CREATE TABLE pet (id INTEGER PRIMARY KEY, name TEXT, breed TEXT, age INTEGER, dead INTEGER)"
+            "CREATE TABLE pet (id INTEGER PRIMARY KEY, name TEXT, breed TEXT,\
+                age INTEGER, dead INTEGER)"
         )
         cur.execute(
             "CREATE TABLE person_pet (person_id INTEGER, pet_id INTEGER)"
@@ -43,7 +45,7 @@ try:
 
         cur.executemany("INSERT INTO person VALUES(?, ?, ?, ?)", persons)
         cur.executemany("INSERT INTO pet VALUES(?, ?, ?, ?, ?)", pets)
-        cur.executemany("INSERT INTO person_pet VALUES(?, ?)", person_pet)
+        cur.executemany("INSERT INTO person_pet VALUES(?, ?)", persons_pets)
 
         con.commit()
 except sqlite3.Error as e:
@@ -55,7 +57,8 @@ except sqlite3.Error as e:
     sys.exit(1)
 
 finally:
-
+    if cur:
+        cur.close()
     if con:
         con.close()
 

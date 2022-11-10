@@ -1,36 +1,51 @@
+from helper_functions import try_connection
 import sqlite3
 
-con = sqlite3.connect("pets.db")
-name = "William"
-pet = "Spot"
-person_id = 4
+PERSON_QRY = "SELECT * FROM person WHERE id=?;"
+PERSON_PET_QUERY = "SELECT p.first_name, p.last_name, pt.name, pt.breed, \
+    pt.age, pt.dead FROM person p INNER JOIN person_pet pp \
+        ON p.id = pp.person_id INNER JOIN pet pt ON pt.id = pp.pet_id \
+            WHERE pp.person_id=?"
 
 
-with con:
-    cur = con.cursor()
-    cur.execute("SELECT * from person;")
+def main(db_name):
 
-    column_names = [cn[0] for cn in cur.description]
+    if try_connection(db_name):
+        con = sqlite3.connect(db_name)
+        cur = con.cursor()
 
-    rows = cur.fetchall()
-    print(
-        f"{column_names[0]:3} {column_names[1]:10} {column_names[2]:7} {column_names[3]:10}"
-    )
+        while True:
+            user_input = input("\nID of pet owner ")
 
-    for row in rows:
-        print(f"{row[0]:<4} {row[1]:<10} {row[2]:8} {row[3]:1}")
+            if user_input <= "0":
+                print("Exiting program")
+                break
+            else:
+                id = int(user_input)
+                with con:
+                    cur.execute(PERSON_QRY, (id,))
+                    row = cur.fetchone()
+                    if row:
 
-    cur.execute("SELECT * from person WHERE first_name=?", (name,))
+                        print("\n" f"{row[1]} {row[2]} is {row[3]} years old.")
+                        cur.execute(
+                            PERSON_PET_QUERY, (id,)
+                        )  # for pets and owners
+                        for row in cur.fetchall():
+                            if row[5]:
+                                print(
+                                    f"{row[0]} {row[1]} owned {row[2]}, a "
+                                    f"{row[3]}, that was {row[4]} years old."
+                                )
+                            else:
+                                print(
+                                    f"{row[0]} {row[1]} owns {row[2]}, a "
+                                    f"{row[3]}, that is {row[4]} years old."
+                                )
+                    else:
+                        print("\nNo pet owner found")
+                        print("Enter -1 in pet owner field to exit program")
 
-    column_name = [cn[0] for cn in cur.description]
-
-    rows = cur.fetchall()
-    print(
-        f"{column_name[0]:3} {column_name[1]:10} {column_name[2]:7} {column_name[3]:10}"
-    )
-
-    for row in rows:
-        print(f"{row[0]:<4} {row[1]:<10} {row[2]:8} {row[3]:1}")
 
 if __name__ == "__main__":
-    pass
+    main("pets.db")
